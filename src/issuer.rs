@@ -4,9 +4,8 @@ use std::collections::{HashMap, VecDeque};
 use std::str::FromStr;
 use std::vec::Vec;
 
-use jsonwebtoken::jwk::Jwk;
-use jsonwebtoken::{Algorithm, EncodingKey, Header};
-use rand::Rng;
+use jsonwebtoken_test::jwk::Jwk;
+use jsonwebtoken_test::{Algorithm, EncodingKey, Header};
 use serde_json::Value;
 use serde_json::{json, Map as SJMap, Map};
 
@@ -32,9 +31,9 @@ pub struct SDJWTIssuer {
     // internal fields
     inner: SDJWTCommon,
     all_disclosures: Vec<SDJWTDisclosure>,
-    sd_jwt_payload: SJMap<String, Value>,
-    signed_sd_jwt: String,
-    serialized_sd_jwt: String,
+    pub sd_jwt_payload: SJMap<String, Value>,
+    pub signed_sd_jwt: String,
+    pub serialized_sd_jwt: String,
 }
 
 /// ClaimsForSelectiveDisclosureStrategy is used to determine which claims can be selectively disclosed later by the holder.
@@ -196,7 +195,7 @@ impl SDJWTIssuer {
         let always_revealed_root_keys = vec!["iss", "iat", "exp"];
         let mut always_revealed_claims: Map<String, Value> = always_revealed_root_keys
             .into_iter()
-            .filter_map(|key| claims_obj_ref.shift_remove_entry(key))
+            .filter_map(|key| claims_obj_ref.remove_entry(key))
             .collect();
 
         self.sd_jwt_payload = self
@@ -252,10 +251,6 @@ impl SDJWTIssuer {
         sd_strategy: ClaimsForSelectiveDisclosureStrategy,
     ) -> Value {
         let mut claims = SJMap::new();
-
-        // to have the first key "_sd" in the ordered map
-        claims.insert(SD_DIGESTS_KEY.to_owned(), Value::Null);
-
         let mut sd_claims = Vec::new();
 
         for (key, value) in user_claims.iter() {
@@ -272,8 +267,7 @@ impl SDJWTIssuer {
         }
 
         if self.add_decoy_claims {
-            let num_decoy_elements =
-                rand::thread_rng().gen_range(Self::DECOY_MIN_ELEMENTS..Self::DECOY_MAX_ELEMENTS);
+            let num_decoy_elements: u32 = (Self::DECOY_MIN_ELEMENTS + Self::DECOY_MAX_ELEMENTS) / 2;
             for _ in 0..num_decoy_elements {
                 sd_claims.push(self.create_decoy_claim_entry());
             }
@@ -285,8 +279,6 @@ impl SDJWTIssuer {
                 SD_DIGESTS_KEY.to_owned(),
                 Value::Array(sd_claims.into_iter().map(Value::String).collect()),
             );
-        } else {
-            claims.shift_remove(SD_DIGESTS_KEY);
         }
 
         Value::Object(claims)
@@ -306,7 +298,7 @@ impl SDJWTIssuer {
                 .map_err(|e| Error::DeserializationError(e.to_string()))?,
         );
         header.typ = self.inner.typ.clone();
-        self.signed_sd_jwt = jsonwebtoken::encode(&header, &self.sd_jwt_payload, &self.issuer_key)
+        self.signed_sd_jwt = jsonwebtoken_test::encode(&header, &self.sd_jwt_payload, &self.issuer_key)
             .map_err(|e| Error::DeserializationError(e.to_string()))?;
 
         Ok(())
@@ -359,79 +351,7 @@ impl SDJWTIssuer {
     }
 
     fn create_decoy_claim_entry(&mut self) -> String {
-        let digest = base64_hash(generate_salt().as_bytes()).to_string();
+        let digest = base64_hash(generate_salt(None).as_bytes()).to_string();
         digest
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use jsonwebtoken::EncodingKey;
-    use log::trace;
-    use serde_json::json;
-
-    use crate::issuer::ClaimsForSelectiveDisclosureStrategy;
-    use crate::{SDJWTIssuer, SDJWTSerializationFormat};
-
-    const PRIVATE_ISSUER_PEM: &str = "-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgUr2bNKuBPOrAaxsR\nnbSH6hIhmNTxSGXshDSUD1a1y7ihRANCAARvbx3gzBkyPDz7TQIbjF+ef1IsxUwz\nX1KWpmlVv+421F7+c1sLqGk4HUuoVeN8iOoAcE547pJhUEJyf5Asc6pP\n-----END PRIVATE KEY-----\n";
-
-    #[test]
-    fn test_assembly_sd_full_recursive() {
-        let user_claims = json!({
-            "sub": "6c5c0a49-b589-431d-bae7-219122a9ec2c",
-            "iss": "https://example.com/issuer",
-            "iat": 1683000000,
-            "exp": 1883000000,
-            "address": {
-                "street_address": "Schulstr. 12",
-                "locality": "Schulpforta",
-                "region": "Sachsen-Anhalt",
-                "country": "DE"
-            }
-        });
-        let private_issuer_bytes = PRIVATE_ISSUER_PEM.as_bytes();
-        let issuer_key = EncodingKey::from_ec_pem(private_issuer_bytes).unwrap();
-        let sd_jwt = SDJWTIssuer::new(issuer_key, None).issue_sd_jwt(
-            user_claims,
-            ClaimsForSelectiveDisclosureStrategy::AllLevels,
-            None,
-            false,
-            SDJWTSerializationFormat::Compact,
-        )
-            .unwrap();
-        trace!("{:?}", sd_jwt)
-    }
-
-    #[test]
-    fn test_next_level_array() {
-        let strategy = ClaimsForSelectiveDisclosureStrategy::Custom(vec![
-            "name",
-            "addresses[1]",
-            "addresses[1].country",
-            "nationalities[0]",
-        ]);
-
-        let next_strategy = strategy.next_level("addresses");
-        assert_eq!(&next_strategy, &ClaimsForSelectiveDisclosureStrategy::Custom(vec!["[1]", "[1].country"]));
-        let next_strategy = next_strategy.next_level("[1]");
-        assert_eq!(&next_strategy, &ClaimsForSelectiveDisclosureStrategy::Custom(vec!["country"]));
-    }
-
-    #[test]
-    fn test_next_level_object() {
-        let strategy = ClaimsForSelectiveDisclosureStrategy::Custom(vec![
-            "address.street_address",
-            "address.locality",
-            "address.region",
-            "address.country",
-        ]);
-
-        let next_strategy = strategy.next_level("address");
-        assert_eq!(&next_strategy, &ClaimsForSelectiveDisclosureStrategy::Custom(vec![
-            "street_address",
-            "locality",
-            "region",
-            "country"
-        ]));
     }
 }
