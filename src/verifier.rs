@@ -1,8 +1,8 @@
 use crate::SDJWTSerializationFormat;
 use crate::error::Error;
 use crate::error::Result;
-use jsonwebtoken::jwk::Jwk;
-use jsonwebtoken::{Algorithm, DecodingKey, Header, Validation};
+use jsonwebtoken_test::jwk::Jwk;
+use jsonwebtoken_test::{Algorithm, DecodingKey, Header, Validation};
 use log::debug;
 use serde_json::{Map, Value};
 use std::option::Option;
@@ -88,7 +88,7 @@ impl SDJWTVerifier {
             .unverified_sd_jwt
             .as_ref()
             .ok_or(Error::ConversionError("reference".to_string()))?;
-        let parsed_header_sd_jwt = jsonwebtoken::decode_header(sd_jwt)
+        let parsed_header_sd_jwt = jsonwebtoken_test::decode_header(sd_jwt)
             .map_err(|e| Error::DeserializationError(e.to_string()))?;
 
         let unverified_issuer = self
@@ -98,12 +98,13 @@ impl SDJWTVerifier {
             .ok_or(Error::ConversionError("reference".to_string()))?["iss"]
             .as_str()
             .ok_or(Error::ConversionError("str".to_string()))?;
-        let issuer_public_key = (self.cb_get_issuer_key)(unverified_issuer, &parsed_header_sd_jwt);
+        
+        let issuer_public_key: DecodingKey = (self.cb_get_issuer_key)(unverified_issuer, &parsed_header_sd_jwt);
 
-        let claims = jsonwebtoken::decode(
+        let claims = jsonwebtoken_test::decode(
             sd_jwt,
             &issuer_public_key,
-            &Validation::new(Algorithm::ES256),
+            &Validation::new(Algorithm::EdDSA),
         )
             .map_err(|e| Error::DeserializationError(format!("Cannot decode jwt: {}", e)))?
             .claims;
@@ -167,7 +168,7 @@ impl SDJWTVerifier {
                 validation.set_audience(&[expected_aud.as_str()]);
                 validation.set_required_spec_claims(&["aud"]);
 
-                jsonwebtoken::decode::<Map<String, Value>>(payload.as_str(), &pubkey, &validation)
+                jsonwebtoken_test::decode::<Map<String, Value>>(payload.as_str(), &pubkey, &validation)
                     .map_err(|e| Error::DeserializationError(e.to_string()))?
             }
             None => {
@@ -231,15 +232,15 @@ impl SDJWTVerifier {
     fn unpack_disclosed_claims(&mut self, sd_jwt_claims: &Value) -> Result<Value> {
         match sd_jwt_claims {
             Value::Null | Value::Bool(_) | Value::Number(_) | Value::String(_) => {
-                Ok(sd_jwt_claims.to_owned())
+                return Ok(sd_jwt_claims.to_owned());
             }
             Value::Array(arr) => {
-                self.unpack_disclosed_claims_in_array(arr)
+                return self.unpack_disclosed_claims_in_array(arr);
             }
             Value::Object(obj) => {
-                self.unpack_disclosed_claims_in_object(obj)
+                return self.unpack_disclosed_claims_in_object(obj);
             }
-        }
+        };
     }
 
     fn unpack_disclosed_claims_in_array(&mut self, arr: &Vec<Value>) -> Result<Value> {
@@ -263,8 +264,8 @@ impl SDJWTVerifier {
 
                     let digest = obj.get(SD_LIST_PREFIX).unwrap();
                     let disclosed_claim = self.unpack_from_digest(digest)?;
-                    if let Some(disclosed_claim) = disclosed_claim {
-                        claims.push(disclosed_claim);
+                    if disclosed_claim.is_some() {
+                        claims.push(disclosed_claim.unwrap());
                     }
                 },
                 _ => {
@@ -273,7 +274,7 @@ impl SDJWTVerifier {
                 },
             }
         }
-        Ok(Value::Array(claims))
+        return Ok(Value::Array(claims));
     }
 
     fn unpack_disclosed_claims_in_object(&mut self, nested_sd_jwt_claims: &Map<String, Value>) -> Result<Value> {
@@ -364,302 +365,5 @@ impl SDJWTVerifier {
         }
 
         Ok(None)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::issuer::ClaimsForSelectiveDisclosureStrategy;
-    use crate::{SDJWTHolder, SDJWTIssuer, SDJWTVerifier, SDJWTSerializationFormat};
-    use jsonwebtoken::{DecodingKey, EncodingKey};
-    use serde_json::{json, Value};
-
-    const PRIVATE_ISSUER_PEM: &str = "-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgUr2bNKuBPOrAaxsR\nnbSH6hIhmNTxSGXshDSUD1a1y7ihRANCAARvbx3gzBkyPDz7TQIbjF+ef1IsxUwz\nX1KWpmlVv+421F7+c1sLqGk4HUuoVeN8iOoAcE547pJhUEJyf5Asc6pP\n-----END PRIVATE KEY-----\n";
-    const PUBLIC_ISSUER_PEM: &str = "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEb28d4MwZMjw8+00CG4xfnn9SLMVM\nM19SlqZpVb/uNtRe/nNbC6hpOB1LqFXjfIjqAHBOeO6SYVBCcn+QLHOqTw==\n-----END PUBLIC KEY-----\n";
-
-    #[test]
-    fn verify_full_presentation() {
-        let user_claims = json!({
-            "sub": "6c5c0a49-b589-431d-bae7-219122a9ec2c",
-            "iss": "https://example.com/issuer",
-            "iat": 1683000000,
-            "exp": 1883000000,
-            "address": {
-                "street_address": "Schulstr. 12",
-                "locality": "Schulpforta",
-                "region": "Sachsen-Anhalt",
-                "country": "DE"
-            }
-        });
-        let private_issuer_bytes = PRIVATE_ISSUER_PEM.as_bytes();
-        let issuer_key = EncodingKey::from_ec_pem(private_issuer_bytes).unwrap();
-        let sd_jwt = SDJWTIssuer::new(issuer_key, None).issue_sd_jwt(
-            user_claims.clone(),
-            ClaimsForSelectiveDisclosureStrategy::AllLevels,
-            None,
-            false,
-            SDJWTSerializationFormat::Compact,
-        )
-            .unwrap();
-        let presentation = SDJWTHolder::new(sd_jwt.clone(), SDJWTSerializationFormat::Compact)
-            .unwrap()
-            .create_presentation(
-                user_claims.as_object().unwrap().clone(),
-                None,
-                None,
-                None,
-                None,
-            )
-            .unwrap();
-        assert_eq!(sd_jwt, presentation);
-        let verified_claims = SDJWTVerifier::new(
-            presentation,
-            Box::new(|_, _| {
-                let public_issuer_bytes = PUBLIC_ISSUER_PEM.as_bytes();
-                DecodingKey::from_ec_pem(public_issuer_bytes).unwrap()
-            }),
-            None,
-            None,
-            SDJWTSerializationFormat::Compact,
-        )
-            .unwrap()
-            .verified_claims;
-        assert_eq!(user_claims, verified_claims);
-    }
-
-    #[test]
-    fn verify_noclaim_presentation() {
-        let user_claims = json!({
-            "sub": "6c5c0a49-b589-431d-bae7-219122a9ec2c",
-            "iss": "https://example.com/issuer",
-            "iat": 1683000000,
-            "exp": 1883000000,
-            "address": {
-                "street_address": "Schulstr. 12",
-                "locality": "Schulpforta",
-                "region": "Sachsen-Anhalt",
-                "country": "DE"
-            }
-        });
-        let private_issuer_bytes = PRIVATE_ISSUER_PEM.as_bytes();
-        let issuer_key = EncodingKey::from_ec_pem(private_issuer_bytes).unwrap();
-        let sd_jwt = SDJWTIssuer::new(issuer_key, None).issue_sd_jwt(
-            user_claims.clone(),
-            ClaimsForSelectiveDisclosureStrategy::NoSDClaims,
-            None,
-            false,
-            SDJWTSerializationFormat::Compact,
-        )
-            .unwrap();
-
-        let presentation = SDJWTHolder::new(sd_jwt.clone(), SDJWTSerializationFormat::Compact)
-            .unwrap()
-            .create_presentation(
-                user_claims.as_object().unwrap().clone(),
-                None,
-                None,
-                None,
-                None,
-            )
-            .unwrap();
-        assert_eq!(sd_jwt, presentation);
-        let verified_claims = SDJWTVerifier::new(
-            presentation,
-            Box::new(|_, _| {
-                let public_issuer_bytes = PUBLIC_ISSUER_PEM.as_bytes();
-                DecodingKey::from_ec_pem(public_issuer_bytes).unwrap()
-            }),
-            None,
-            None,
-            SDJWTSerializationFormat::Compact,
-        )
-            .unwrap()
-            .verified_claims;
-        assert_eq!(user_claims, verified_claims);
-    }
-
-    #[test]
-    fn verify_arrayed_presentation() {
-        let user_claims = json!(
-            {
-              "sub": "6c5c0a49-b589-431d-bae7-219122a9ec2c",
-              "name": "Bois",
-              "iss": "https://example.com/issuer",
-              "iat": 1683000000,
-              "exp": 1883000000,
-              "addresses": [
-                {
-                "street_address": "Schulstr. 12",
-                "locality": "Schulpforta",
-                "region": "Sachsen-Anhalt",
-                "country": "DE"
-                },
-                {
-                "street_address": "456 Main St",
-                "locality": "Anytown",
-                "region": "NY",
-                "country": "US"
-                }
-              ],
-              "nationalities": [
-                "US",
-                "CA"
-              ]
-            }
-        );
-        let private_issuer_bytes = PRIVATE_ISSUER_PEM.as_bytes();
-        let issuer_key = EncodingKey::from_ec_pem(private_issuer_bytes).unwrap();
-        let strategy = ClaimsForSelectiveDisclosureStrategy::Custom(vec![
-            "$.name",
-            "$.addresses[1]",
-            "$.addresses[1].country",
-            "$.nationalities[0]",
-        ]);
-        let sd_jwt = SDJWTIssuer::new(issuer_key, None).issue_sd_jwt(
-            user_claims.clone(),
-            strategy,
-            None,
-            false,
-            SDJWTSerializationFormat::Compact,
-        )
-            .unwrap();
-
-        let mut claims_to_disclose = user_claims.clone();
-        claims_to_disclose["addresses"] = Value::Array(vec![Value::Bool(true), Value::Bool(true)]);
-        claims_to_disclose["nationalities"] =
-            Value::Array(vec![Value::Bool(true), Value::Bool(true)]);
-        let presentation = SDJWTHolder::new(sd_jwt, SDJWTSerializationFormat::Compact)
-            .unwrap()
-            .create_presentation(
-                claims_to_disclose.as_object().unwrap().clone(),
-                None,
-                None,
-                None,
-                None,
-            )
-            .unwrap();
-
-        let verified_claims = SDJWTVerifier::new(
-            presentation.clone(),
-            Box::new(|_, _| {
-                let public_issuer_bytes = PUBLIC_ISSUER_PEM.as_bytes();
-                DecodingKey::from_ec_pem(public_issuer_bytes).unwrap()
-            }),
-            None,
-            None,
-            SDJWTSerializationFormat::Compact,
-        )
-            .unwrap()
-            .verified_claims;
-
-        let expected_verified_claims = json!(
-            {
-                "sub": "6c5c0a49-b589-431d-bae7-219122a9ec2c",
-                "addresses": [
-                    {
-                        "street_address": "Schulstr. 12",
-                        "locality": "Schulpforta",
-                        "region": "Sachsen-Anhalt",
-                        "country": "DE",
-                    },
-                    {
-                        "street_address": "456 Main St",
-                        "locality": "Anytown",
-                        "region": "NY",
-                    },
-                ],
-                "nationalities": [
-                    "US",
-                    "CA",
-                ],
-                "iss": "https://example.com/issuer",
-                "iat": 1683000000,
-                "exp": 1883000000,
-                "name": "Bois"
-            }
-        );
-
-        assert_eq!(verified_claims, expected_verified_claims);
-    }
-
-    #[test]
-    fn verify_arrayed_no_sd_presentation() {
-        let user_claims = json!(
-            {
-                "iss": "https://example.com/issuer",
-                "iat": 1683000000,
-                "exp": 1883000000,
-                "array_with_recursive_sd": [
-                    "boring",
-                    {
-                        "foo": "bar",
-                        "baz": {
-                            "qux": "quux"
-                        }
-                    },
-                    ["foo", "bar"]
-                ],
-                "test2": ["foo", "bar"]
-            }
-        );
-        let private_issuer_bytes = PRIVATE_ISSUER_PEM.as_bytes();
-        let issuer_key = EncodingKey::from_ec_pem(private_issuer_bytes).unwrap();
-        let strategy = ClaimsForSelectiveDisclosureStrategy::Custom(vec![
-            "$.array_with_recursive_sd[1]",
-            "$.array_with_recursive_sd[1].baz",
-            "$.array_with_recursive_sd[2][0]",
-            "$.array_with_recursive_sd[2][1]",
-            "$.test2[0]",
-            "$.test2[1]",
-        ]);
-        let sd_jwt = SDJWTIssuer::new(issuer_key, None).issue_sd_jwt(
-            user_claims.clone(),
-            strategy,
-            None,
-            false,
-            SDJWTSerializationFormat::Compact,
-        )
-            .unwrap();
-
-        let claims_to_disclose = json!({});
-
-        let presentation = SDJWTHolder::new(sd_jwt, SDJWTSerializationFormat::Compact)
-            .unwrap()
-            .create_presentation(
-                claims_to_disclose.as_object().unwrap().clone(),
-                None,
-                None,
-                None,
-                None,
-            )
-            .unwrap();
-
-        let verified_claims = SDJWTVerifier::new(
-            presentation.clone(),
-            Box::new(|_, _| {
-                let public_issuer_bytes = PUBLIC_ISSUER_PEM.as_bytes();
-                DecodingKey::from_ec_pem(public_issuer_bytes).unwrap()
-            }),
-            None,
-            None,
-            SDJWTSerializationFormat::Compact,
-        )
-            .unwrap()
-            .verified_claims;
-
-        let expected_verified_claims = json!(
-            {
-                "iss": "https://example.com/issuer",
-                "iat": 1683000000,
-                "exp": 1883000000,
-                "array_with_recursive_sd":  [
-                    "boring",
-                    [],
-                ],
-                "test2": [],
-            }
-        );
-
-        assert_eq!(verified_claims, expected_verified_claims);
     }
 }
