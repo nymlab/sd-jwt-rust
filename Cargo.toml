@@ -1,6 +1,6 @@
 [package]
-name = "sd-jwt-rs"
-version = "0.7.0"
+name = "sd-jwt-rs-test"
+version = "0.0.6"
 edition = "2021"
 license = "Apache-2.0 OR MIT"
 description = "Rust reference implementation of the IETF SD-JWT specification (v7)."
@@ -16,12 +16,11 @@ mock_salts = ["lazy_static"]
 [dependencies]
 base64 = "0.21"
 hmac = "0.12"
-jsonwebtoken = "9.2"
+jsonwebtoken-test = { git = "https://github.com/nymlab/jsonwebtoken.git", rev = "a197cfe504af9dbd61eea232409ecf49ad3a0a97" }
 lazy_static = {  version = "1.4", optional = true }
 log = "0.4"
-rand = "0.8"
 serde = { version = "1.0.193", features = ["derive"] }
-serde_json = { version = "1.0.113", features = ["preserve_order"] }
+serde_json = "1.0"
 sha2 = "0.10"
 thiserror = "1.0.51"
 strum = { version = "0.25", default-features = false, features = ["std", "derive"] }
