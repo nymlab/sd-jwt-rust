@@ -1,6 +1,6 @@
 use crate::{error, SDJWTJson, SDJWTSerializationFormat};
 use error::{Error, Result};
-use jsonwebtoken_test::{Algorithm, EncodingKey, Header};
+use jsonwebtoken_wasm::{Algorithm, EncodingKey, Header};
 use serde_json::{Map, Value};
 use std::collections::HashMap;
 use std::str::FromStr;
@@ -323,7 +323,7 @@ impl SDJWTHolder {
         );
         header.typ = Some(crate::KB_JWT_TYP_HEADER.into());
         self.serialized_key_binding_jwt =
-            jsonwebtoken_test::encode(&header, &self.key_binding_jwt_payload, holder_key)
+            jsonwebtoken_wasm::encode(&header, &self.key_binding_jwt_payload, holder_key)
                 .map_err(|e| Error::DeserializationError(e.to_string()))?;
         Ok(())
     }

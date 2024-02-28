@@ -4,8 +4,8 @@ use std::collections::{HashMap, VecDeque};
 use std::str::FromStr;
 use std::vec::Vec;
 
-use jsonwebtoken_test::jwk::Jwk;
-use jsonwebtoken_test::{Algorithm, EncodingKey, Header};
+use jsonwebtoken_wasm::jwk::Jwk;
+use jsonwebtoken_wasm::{Algorithm, EncodingKey, Header};
 use serde_json::Value;
 use serde_json::{json, Map as SJMap, Map};
 
@@ -298,7 +298,7 @@ impl SDJWTIssuer {
                 .map_err(|e| Error::DeserializationError(e.to_string()))?,
         );
         header.typ = self.inner.typ.clone();
-        self.signed_sd_jwt = jsonwebtoken_test::encode(&header, &self.sd_jwt_payload, &self.issuer_key)
+        self.signed_sd_jwt = jsonwebtoken_wasm::encode(&header, &self.sd_jwt_payload, &self.issuer_key)
             .map_err(|e| Error::DeserializationError(e.to_string()))?;
 
         Ok(())

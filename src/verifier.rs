@@ -1,8 +1,8 @@
 use crate::SDJWTSerializationFormat;
 use crate::error::Error;
 use crate::error::Result;
-use jsonwebtoken_test::jwk::Jwk;
-use jsonwebtoken_test::{Algorithm, DecodingKey, Header, Validation};
+use jsonwebtoken_wasm::jwk::Jwk;
+use jsonwebtoken_wasm::{Algorithm, DecodingKey, Header, Validation};
 use log::debug;
 use serde_json::{Map, Value};
 use std::option::Option;
@@ -88,7 +88,7 @@ impl SDJWTVerifier {
             .unverified_sd_jwt
             .as_ref()
             .ok_or(Error::ConversionError("reference".to_string()))?;
-        let parsed_header_sd_jwt = jsonwebtoken_test::decode_header(sd_jwt)
+        let parsed_header_sd_jwt = jsonwebtoken_wasm::decode_header(sd_jwt)
             .map_err(|e| Error::DeserializationError(e.to_string()))?;
 
         let unverified_issuer = self
@@ -101,7 +101,7 @@ impl SDJWTVerifier {
         
         let issuer_public_key: DecodingKey = (self.cb_get_issuer_key)(unverified_issuer, &parsed_header_sd_jwt);
 
-        let claims = jsonwebtoken_test::decode(
+        let claims = jsonwebtoken_wasm::decode(
             sd_jwt,
             &issuer_public_key,
             &Validation::new(Algorithm::EdDSA),
@@ -168,7 +168,7 @@ impl SDJWTVerifier {
                 validation.set_audience(&[expected_aud.as_str()]);
                 validation.set_required_spec_claims(&["aud"]);
 
-                jsonwebtoken_test::decode::<Map<String, Value>>(payload.as_str(), &pubkey, &validation)
+                jsonwebtoken_wasm::decode::<Map<String, Value>>(payload.as_str(), &pubkey, &validation)
                     .map_err(|e| Error::DeserializationError(e.to_string()))?
             }
             None => {
