@@ -16,7 +16,7 @@ mock_salts = ["lazy_static"]
 [dependencies]
 base64 = "0.21"
 hmac = "0.12"
-jsonwebtoken_wasm = { git = "https://github.com/nymlab/jsonwebtoken.git" }
+jsonwebtoken_wasm = { git = "https://github.com/nymlab/jsonwebtoken.git", rev = "cec54d8c31642fa7bd5790dc9b361dcf5a75aafd" }
 lazy_static = {  version = "1.4", optional = true }
 log = "0.4"
 serde = { version = "1.0.193", features = ["derive"] }
