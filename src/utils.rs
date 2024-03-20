@@ -51,7 +51,7 @@ pub(crate) fn generate_salt_mock() -> String {
     return salts.pop_front().expect("SALTS is empty");
 }
 
-pub(crate) fn jwt_payload_decode(b64data: &str) -> Result<serde_json::Map<String, Value>> {
+pub fn jwt_payload_decode(b64data: &str) -> Result<serde_json::Map<String, Value>> {
     serde_json::from_str(
         &String::from_utf8(
             base64url_decode(b64data).map_err(|e| DeserializationError(e.to_string()))?,

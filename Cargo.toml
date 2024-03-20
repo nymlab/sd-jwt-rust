@@ -11,12 +11,14 @@ documentation = "https://docs.rs/sd-jwt-rs"
 homepage = "https://github.com/openwallet-foundation-labs/sd-jwt-rust"
 
 [features]
-mock_salts = ["lazy_static"]
+mock_salts = ["lazy_static", "jsonwebtoken"]
+ptd = ["jsonwebtoken/ptd"]
 
 [dependencies]
 base64 = "0.21"
 hmac = "0.12"
-jsonwebtoken = "9.2"
+# jsonwebtoken = { path = "../jsonwebtoken/", features = ["ptd"], package = "jsonwebtoken", optional = true }
+jsonwebtoken = { git = "https://github.com/nymlab/jsonwebtoken", rev = "b9b9a6c35", optional = true }
 lazy_static = {  version = "1.4", optional = true }
 log = "0.4"
 rand = "0.8"
