@@ -13,7 +13,7 @@ homepage = "https://github.com/openwallet-foundation-labs/sd-jwt-rust"
 [dependencies]
 base64 = "0.21"
 hmac = "0.12"
-jsonwebtoken_wasm = { git = "https://github.com/nymlab/jsonwebtoken.git", features = ["ptd"], rev = "2842ddb9b551e3872375e4a364840b1b2e2ecd30", optional = true }
+jsonwebtoken_wasm = { git = "https://github.com/nymlab/jsonwebtoken.git", features = ["ptd"], rev = "b8000f6114fca85ad0ecbc7cef7600e8e38b075b", optional = true }
 lazy_static = {  version = "1.4", optional = true }
 log = "0.4"
 rand = "0.8"
