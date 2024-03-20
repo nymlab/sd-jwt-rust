@@ -8,9 +8,7 @@ use jsonwebtoken_wasm::jwk::Jwk;
 #[cfg(feature = "ptd")]
 use jsonwebtoken_wasm::{self as jsonwebtoken, Algorithm, EncodingKey, Header};
 #[cfg(not(feature = "ptd"))]
-use jsonwebtoken::jwk::Jwk;
-#[cfg(not(feature = "ptd"))]
-use jsonwebtoken::{Algorithm, EncodingKey, Header};
+use jsonwebtoken::{jwk::Jwk, Algorithm, EncodingKey, Header};
 use rand::Rng;
 use serde_json::Value;
 use serde_json::{json, Map as SJMap, Map};

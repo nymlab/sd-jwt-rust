@@ -10,7 +10,8 @@ authors = ["Vikram Bhattacharjee <vikram@nymlab.it>"]
 [dependencies]
 base64 = "0.21"
 hmac = "0.12"
-jsonwebtoken_wasm = { git = "https://github.com/nymlab/jsonwebtoken.git", features = ["ptd"], rev = "a53baa94a342aedf8c5ae9e1613c566700b0c5ed", optional = true }
+jsonwebtoken = { version = "9.2", optional = true }
+jsonwebtoken_wasm = { git = "https://github.com/nymlab/jsonwebtoken.git", features = ["ptd"], rev = "2d1affe41ee50aeb76cdf4e632887b8ccddbce15", optional = true }
 lazy_static = {  version = "1.4", optional = true }
 log = "0.4"
 rand = "0.8"
@@ -22,9 +23,11 @@ strum = { version = "0.25", default-features = false, features = ["std", "derive
 
 [features]
 default = ["ptd"]
-mock_salts = ["lazy_static"]
+upstream = ["jsonwebtoken"]
+mock_salts = ["lazy_static", "jsonwebtoken"]
 ptd = ["jsonwebtoken_wasm"]
 
 [dev-dependencies]
 rstest = "0.18.2"
 regex = "1.10"
+

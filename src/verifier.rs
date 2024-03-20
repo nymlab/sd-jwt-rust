@@ -2,13 +2,9 @@ use crate::SDJWTSerializationFormat;
 use crate::error::Error;
 use crate::error::Result;
 #[cfg(feature = "ptd")]
-use jsonwebtoken_wasm::jwk::Jwk;
-#[cfg(feature = "ptd")]
-use jsonwebtoken_wasm::{self as jsonwebtoken, Algorithm, Validation, DecodingKey, Header};
+use jsonwebtoken_wasm::{self as jsonwebtoken, jwk::Jwk, Algorithm, Validation, DecodingKey, Header};
 #[cfg(not(feature = "ptd"))]
-use jsonwebtoken::jwk::Jwk;
-#[cfg(not(feature = "ptd"))]
-use jsonwebtoken::{Algorithm, EncodingKey, Header};
+use jsonwebtoken::{jwk::Jwk, Algorithm, EncodingKey, Validation, DecodingKey, Header};
 use log::debug;
 use serde_json::{Map, Value};
 use std::option::Option;
