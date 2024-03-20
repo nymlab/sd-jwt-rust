@@ -18,7 +18,11 @@ pub mod issuer;
 pub mod utils;
 pub mod verifier;
 
+#[cfg(not(feature = "ptd"))]
 pub const DEFAULT_SIGNING_ALG: &str = "ES256";
+#[cfg(feature = "ptd")]
+pub const DEFAULT_SIGNING_ALG: &str = "EdDSA";
+
 const SD_DIGESTS_KEY: &str = "_sd";
 const DIGEST_ALG_KEY: &str = "_sd_alg";
 pub const DEFAULT_DIGEST_ALG: &str = "sha-256";

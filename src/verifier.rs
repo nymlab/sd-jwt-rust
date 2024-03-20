@@ -109,7 +109,7 @@ impl SDJWTVerifier {
         let claims = jsonwebtoken::decode(
             sd_jwt,
             &issuer_public_key,
-            &Validation::new(Algorithm::ES256),
+            &Validation::new(Algorithm::EdDSA),
         )
             .map_err(|e| Error::DeserializationError(format!("Cannot decode jwt: {}", e)))?
             .claims;
