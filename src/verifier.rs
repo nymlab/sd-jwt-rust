@@ -1,8 +1,14 @@
 use crate::SDJWTSerializationFormat;
 use crate::error::Error;
 use crate::error::Result;
+#[cfg(feature = "ptd")]
+use jsonwebtoken_wasm::jwk::Jwk;
+#[cfg(feature = "ptd")]
+use jsonwebtoken_wasm::{self as jsonwebtoken, Algorithm, Validation, DecodingKey, Header};
+#[cfg(not(feature = "ptd"))]
 use jsonwebtoken::jwk::Jwk;
-use jsonwebtoken::{Algorithm, DecodingKey, Header, Validation};
+#[cfg(not(feature = "ptd"))]
+use jsonwebtoken::{Algorithm, EncodingKey, Header};
 use log::debug;
 use serde_json::{Map, Value};
 use std::option::Option;
@@ -367,6 +373,7 @@ impl SDJWTVerifier {
     }
 }
 
+#[cfg(not(feature = "ptd"))]
 #[cfg(test)]
 mod tests {
     use crate::issuer::ClaimsForSelectiveDisclosureStrategy;

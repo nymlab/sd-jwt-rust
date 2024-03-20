@@ -3,8 +3,13 @@ use error::Result;
 use std::collections::{HashMap, VecDeque};
 use std::str::FromStr;
 use std::vec::Vec;
-
+#[cfg(feature = "ptd")]
+use jsonwebtoken_wasm::jwk::Jwk;
+#[cfg(feature = "ptd")]
+use jsonwebtoken_wasm::{self as jsonwebtoken, Algorithm, EncodingKey, Header};
+#[cfg(not(feature = "ptd"))]
 use jsonwebtoken::jwk::Jwk;
+#[cfg(not(feature = "ptd"))]
 use jsonwebtoken::{Algorithm, EncodingKey, Header};
 use rand::Rng;
 use serde_json::Value;
@@ -364,6 +369,7 @@ impl SDJWTIssuer {
     }
 }
 
+#[cfg(not(feature = "ptd"))]
 #[cfg(test)]
 mod tests {
     use jsonwebtoken::EncodingKey;

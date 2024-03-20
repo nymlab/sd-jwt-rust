@@ -1,5 +1,5 @@
 use crate::error::Error;
-use crate::utils::{base64_hash, base64url_decode, jwt_payload_decode};
+use crate::utils::{base64_hash, base64url_decode};
 
 use error::Result;
 use serde::{Deserialize, Serialize};
@@ -7,6 +7,9 @@ use serde_json::{Map, Value};
 use strum::Display;
 use std::collections::HashMap;
 pub use {holder::SDJWTHolder, issuer::SDJWTIssuer, issuer::ClaimsForSelectiveDisclosureStrategy, verifier::SDJWTVerifier};
+
+#[cfg(feature = "ptd")]
+pub use utils::jwt_payload_decode;
 
 mod disclosure;
 pub mod error;

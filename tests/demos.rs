@@ -4,17 +4,24 @@ use crate::utils::fixtures::{
     HOLDER_JWK_KEY, HOLDER_KEY, ISSUER_KEY, ISSUER_PUBLIC_KEY, NESTED_ARRAY_CLAIMS,
     NESTED_ARRAY_JSONPATH, W3C_VC_CLAIMS, W3C_VC_JSONPATH,
 };
+#[cfg(feature = "ptd")]
+use jsonwebtoken_wasm::jwk::Jwk;
+#[cfg(feature = "ptd")]
+use jsonwebtoken_wasm::{Algorithm, EncodingKey, DecodingKey, Header};
+#[cfg(not(feature = "ptd"))]
+use jsonwebtoken::{Algorithm, EncodingKey, DecodingKey, Header};
+#[cfg(not(feature = "ptd"))]
 use jsonwebtoken::jwk::Jwk;
-use jsonwebtoken::{DecodingKey, EncodingKey};
 use rstest::{fixture, rstest};
-use sd_jwt_rs::issuer::ClaimsForSelectiveDisclosureStrategy;
-use sd_jwt_rs::{SDJWTHolder, SDJWTIssuer, SDJWTJson, SDJWTVerifier, SDJWTSerializationFormat};
-use sd_jwt_rs::{COMBINED_SERIALIZATION_FORMAT_SEPARATOR, DEFAULT_SIGNING_ALG};
+use sd_jwt_rs_wasm::issuer::ClaimsForSelectiveDisclosureStrategy;
+use sd_jwt_rs_wasm::{SDJWTHolder, SDJWTIssuer, SDJWTJson, SDJWTVerifier, SDJWTSerializationFormat};
+use sd_jwt_rs_wasm::{COMBINED_SERIALIZATION_FORMAT_SEPARATOR, DEFAULT_SIGNING_ALG};
 use serde_json::{json, Map, Value};
 use std::collections::HashSet;
 
 mod utils;
 
+#[cfg(not(feature = "ptd"))]
 #[fixture]
 fn issuer_key() -> EncodingKey {
     let private_issuer_bytes = ISSUER_KEY.as_bytes();
@@ -26,6 +33,7 @@ fn holder_jwk() -> Option<Jwk> {
     Some(jwk)
 }
 
+#[cfg(not(feature = "ptd"))]
 #[allow(unused)]
 fn holder_key() -> Option<EncodingKey> {
     let private_issuer_bytes = HOLDER_KEY.as_bytes();
@@ -261,6 +269,7 @@ fn w3c_vc<'a>() -> (
     )
 }
 
+#[cfg(not(feature = "ptd"))]
 #[allow(unused)]
 fn presentation_metadata() -> (
     Option<String>,
@@ -276,6 +285,7 @@ fn presentation_metadata() -> (
     )
 }
 
+#[cfg(not(feature = "ptd"))]
 #[rstest]
 #[case(address_flat())]
 #[case(address_full_recursive())]

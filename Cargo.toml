@@ -1,5 +1,5 @@
 [package]
-name = "sd-jwt-rs"
+name = "sd-jwt-rs_wasm"
 version = "0.7.0"
 edition = "2021"
 license = "Apache-2.0 OR MIT"
@@ -10,13 +10,10 @@ repository = "https://github.com/openwallet-foundation-labs/sd-jwt-rust"
 documentation = "https://docs.rs/sd-jwt-rs"
 homepage = "https://github.com/openwallet-foundation-labs/sd-jwt-rust"
 
-[features]
-mock_salts = ["lazy_static"]
-
 [dependencies]
 base64 = "0.21"
 hmac = "0.12"
-jsonwebtoken = "9.2"
+jsonwebtoken_wasm = { git = "https://github.com/nymlab/jsonwebtoken.git", features = ["ptd"], rev = "2842ddb9b551e3872375e4a364840b1b2e2ecd30", optional = true }
 lazy_static = {  version = "1.4", optional = true }
 log = "0.4"
 rand = "0.8"
@@ -25,6 +22,11 @@ serde_json = { version = "1.0.113", features = ["preserve_order"] }
 sha2 = "0.10"
 thiserror = "1.0.51"
 strum = { version = "0.25", default-features = false, features = ["std", "derive"] }
+
+[features]
+default = ["ptd"]
+mock_salts = ["lazy_static"]
+ptd = ["jsonwebtoken_wasm"]
 
 [dev-dependencies]
 rstest = "0.18.2"
