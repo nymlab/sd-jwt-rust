@@ -1,24 +1,29 @@
+#[cfg(not(feature = "ptd"))]
 use crate::utils::fixtures::{
     ADDRESS_CLAIMS, ADDRESS_ONLY_STRUCTURED_JSONPATH, ADDRESS_ONLY_STRUCTURED_ONE_OPEN_JSONPATH,
     ARRAYED_CLAIMS, ARRAYED_CLAIMS_JSONPATH, COMPLEX_EIDAS_CLAIMS, COMPLEX_EIDAS_JSONPATH,
     HOLDER_JWK_KEY, HOLDER_KEY, ISSUER_KEY, ISSUER_PUBLIC_KEY, NESTED_ARRAY_CLAIMS,
     NESTED_ARRAY_JSONPATH, W3C_VC_CLAIMS, W3C_VC_JSONPATH,
 };
-#[cfg(feature = "ptd")]
-use jsonwebtoken_wasm::jwk::Jwk;
-#[cfg(feature = "ptd")]
-use jsonwebtoken_wasm::{Algorithm, EncodingKey, DecodingKey, Header};
 #[cfg(not(feature = "ptd"))]
-use jsonwebtoken::{Algorithm, EncodingKey, DecodingKey, Header};
+use sd_jwt_rs_wasm::issuer::ClaimsForSelectiveDisclosureStrategy;
+#[cfg(not(feature = "ptd"))]
+use jsonwebtoken::{EncodingKey, DecodingKey};
 #[cfg(not(feature = "ptd"))]
 use jsonwebtoken::jwk::Jwk;
-use rstest::{fixture, rstest};
-use sd_jwt_rs_wasm::issuer::ClaimsForSelectiveDisclosureStrategy;
+#[cfg(not(feature = "ptd"))]
 use sd_jwt_rs_wasm::{SDJWTHolder, SDJWTIssuer, SDJWTJson, SDJWTVerifier, SDJWTSerializationFormat};
+#[cfg(not(feature = "ptd"))]
 use sd_jwt_rs_wasm::{COMBINED_SERIALIZATION_FORMAT_SEPARATOR, DEFAULT_SIGNING_ALG};
-use serde_json::{json, Map, Value};
+#[cfg(not(feature = "ptd"))]
 use std::collections::HashSet;
+#[cfg(not(feature = "ptd"))]
+use rstest::{fixture, rstest};
+#[cfg(not(feature = "ptd"))]
+use serde_json::{json, Map, Value};
 
+#[cfg(feature = "ptd")]
+use crate::utils::fixtures::ADDRESS_CLAIMS;
 mod utils;
 
 #[cfg(not(feature = "ptd"))]
@@ -28,6 +33,7 @@ fn issuer_key() -> EncodingKey {
     EncodingKey::from_ec_pem(private_issuer_bytes).unwrap()
 }
 
+#[cfg(not(feature = "ptd"))]
 fn holder_jwk() -> Option<Jwk> {
     let jwk: Jwk = serde_json::from_str(HOLDER_JWK_KEY).unwrap();
     Some(jwk)
@@ -45,6 +51,7 @@ fn _address_claims() -> serde_json::Value {
     serde_json::from_str(ADDRESS_CLAIMS).unwrap()
 }
 
+#[cfg(not(feature = "ptd"))]
 #[fixture]
 fn address_flat<'a>() -> (
     serde_json::Value,
@@ -62,6 +69,7 @@ fn address_flat<'a>() -> (
     )
 }
 
+#[cfg(not(feature = "ptd"))]
 #[fixture]
 fn address_full_recursive<'a>() -> (
     serde_json::Value,
@@ -88,6 +96,7 @@ fn address_full_recursive<'a>() -> (
     )
 }
 
+#[cfg(not(feature = "ptd"))]
 #[fixture]
 fn address_only_structured<'a>() -> (
     serde_json::Value,
@@ -114,6 +123,7 @@ fn address_only_structured<'a>() -> (
     )
 }
 
+#[cfg(not(feature = "ptd"))]
 #[fixture]
 fn address_only_structured_one_open<'a>() -> (
     serde_json::Value,
@@ -139,6 +149,7 @@ fn address_only_structured_one_open<'a>() -> (
     )
 }
 
+#[cfg(not(feature = "ptd"))]
 #[fixture]
 fn arrayed_claims<'a>() -> (
     serde_json::Value,
@@ -162,6 +173,7 @@ fn arrayed_claims<'a>() -> (
     )
 }
 
+#[cfg(not(feature = "ptd"))]
 #[fixture]
 fn nested_array<'a>() -> (
     serde_json::Value,
@@ -188,6 +200,7 @@ fn nested_array<'a>() -> (
     )
 }
 
+#[cfg(not(feature = "ptd"))]
 #[fixture]
 fn complex_eidas<'a>() -> (
     serde_json::Value,
@@ -235,6 +248,7 @@ fn complex_eidas<'a>() -> (
     )
 }
 
+#[cfg(not(feature = "ptd"))]
 #[fixture]
 fn w3c_vc<'a>() -> (
     serde_json::Value,

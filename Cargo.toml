@@ -11,7 +11,7 @@ authors = ["Vikram Bhattacharjee <vikram@nymlab.it>"]
 base64 = "0.21"
 hmac = "0.12"
 jsonwebtoken = { version = "9.2", optional = true }
-jsonwebtoken_wasm = { git = "https://github.com/nymlab/jsonwebtoken.git", features = ["ptd"], rev = "2d1affe41ee50aeb76cdf4e632887b8ccddbce15", optional = true }
+jsonwebtoken_wasm = { git = "https://github.com/nymlab/jsonwebtoken.git", features = ["ptd"], rev = "88facdd22e06ae62501c7cf1b83a157331b9be45", optional = true }
 lazy_static = {  version = "1.4", optional = true }
 log = "0.4"
 rand = "0.8"
