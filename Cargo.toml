@@ -1,17 +1,24 @@
 [package]
-name = "sd-jwt-rs_wasm"
+name = "sd-jwt-rs"
 version = "0.7.0"
 edition = "2021"
 license = "Apache-2.0 OR MIT"
 description = "Rust reference implementation of the IETF SD-JWT specification (v7)."
 rust-version = "1.67.0"
-authors = ["Vikram Bhattacharjee <vikram@nymlab.it>"]
+authors = ["Sergey Minaev <sergey.minaev@dsr-corporation.com>"]
+repository = "https://github.com/openwallet-foundation-labs/sd-jwt-rust"
+documentation = "https://docs.rs/sd-jwt-rs"
+homepage = "https://github.com/openwallet-foundation-labs/sd-jwt-rust"
+
+[features]
+mock_salts = ["lazy_static", "jsonwebtoken"]
+ptd = ["jsonwebtoken/ptd"]
 
 [dependencies]
 base64 = "0.21"
 hmac = "0.12"
-jsonwebtoken = { version = "9.2", optional = true }
-jsonwebtoken_wasm = { git = "https://github.com/nymlab/jsonwebtoken.git", features = ["ptd"], rev = "88facdd22e06ae62501c7cf1b83a157331b9be45", optional = true }
+# jsonwebtoken = { path = "../jsonwebtoken/", features = ["ptd"], package = "jsonwebtoken", optional = true }
+jsonwebtoken = { git = "https://github.com/nymlab/jsonwebtoken", rev = "b9b9a6c35", optional = true }
 lazy_static = {  version = "1.4", optional = true }
 log = "0.4"
 rand = "0.8"
@@ -21,13 +28,6 @@ sha2 = "0.10"
 thiserror = "1.0.51"
 strum = { version = "0.25", default-features = false, features = ["std", "derive"] }
 
-[features]
-default = ["ptd"]
-upstream = ["jsonwebtoken"]
-mock_salts = ["lazy_static", "jsonwebtoken"]
-ptd = ["jsonwebtoken_wasm"]
-
 [dev-dependencies]
 rstest = "0.18.2"
 regex = "1.10"
-

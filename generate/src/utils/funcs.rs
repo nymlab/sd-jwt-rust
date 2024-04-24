@@ -7,6 +7,7 @@ use sd_jwt_rs::utils::{base64_hash, base64url_decode};
 use sd_jwt_rs::utils::SALTS;
 use crate::error::{Error, ErrorKind, Result};
 
+
 pub fn parse_sdjwt_paylod(
     sd_jwt: &str,
     serialization_format: &SDJWTSerializationFormat,

@@ -5,13 +5,9 @@ use error::Result;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use strum::Display;
-#[cfg(not(feature = "ptd"))]
-use utils::jwt_payload_decode;
+pub use utils::jwt_payload_decode;
 use std::collections::HashMap;
 pub use {holder::SDJWTHolder, issuer::SDJWTIssuer, issuer::ClaimsForSelectiveDisclosureStrategy, verifier::SDJWTVerifier};
-
-#[cfg(feature = "ptd")]
-pub use utils::jwt_payload_decode;
 
 mod disclosure;
 pub mod error;

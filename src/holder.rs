@@ -1,9 +1,6 @@
 use crate::{error, SDJWTJson, SDJWTSerializationFormat};
 use error::{Error, Result};
-#[cfg(feature = "ptd")]
-use jsonwebtoken_wasm::{self as jsonwebtoken, Algorithm, EncodingKey, Header};
-#[cfg(not(feature = "ptd"))]
-use jsonwebtoken::{Algorithm, EncodingKey, Header};
+use jsonwebtoken::{self, Algorithm, EncodingKey, Header};
 use serde_json::{Map, Value};
 use std::collections::HashMap;
 use std::str::FromStr;
@@ -345,7 +342,6 @@ impl SDJWTHolder {
     }
 }
 
-#[cfg(not(feature = "ptd"))]
 #[cfg(test)]
 mod tests {
     use crate::issuer::ClaimsForSelectiveDisclosureStrategy;
