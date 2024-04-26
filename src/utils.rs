@@ -7,7 +7,9 @@ use base64::Engine;
 use error::Result;
 #[cfg(feature = "mock_salts")]
 use lazy_static::lazy_static;
+#[cfg(not(feature = "no_rand"))]
 use rand::prelude::ThreadRng;
+#[cfg(not(feature = "no_rand"))]
 use rand::RngCore;
 use serde_json::Value;
 use sha2::Digest;
@@ -39,6 +41,7 @@ pub fn base64url_decode(b64data: &str) -> Result<Vec<u8>> {
         .map_err(|e| Error::DeserializationError(e.to_string()))
 }
 
+#[cfg(not(feature = "no_rand"))]
 pub(crate) fn generate_salt() -> String {
     let mut buf = [0u8; 16];
     ThreadRng::default().fill_bytes(&mut buf);
@@ -56,7 +59,7 @@ pub fn jwt_payload_decode(b64data: &str) -> Result<serde_json::Map<String, Value
         &String::from_utf8(
             base64url_decode(b64data).map_err(|e| DeserializationError(e.to_string()))?,
         )
-            .map_err(|e| DeserializationError(e.to_string()))?,
+        .map_err(|e| DeserializationError(e.to_string()))?,
     )
-        .map_err(|e| DeserializationError(e.to_string()))
+    .map_err(|e| DeserializationError(e.to_string()))
 }

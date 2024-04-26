@@ -1,26 +1,28 @@
 use crate::error::Error;
-use crate::utils::{base64_hash, base64url_decode};
+use crate::utils::{base64_hash, base64url_decode, jwt_payload_decode};
 
 use error::Result;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use strum::Display;
-pub use utils::jwt_payload_decode;
 use std::collections::HashMap;
-pub use {holder::SDJWTHolder, issuer::SDJWTIssuer, issuer::ClaimsForSelectiveDisclosureStrategy, verifier::SDJWTVerifier};
+pub use verifier::SDJWTVerifier;
+#[cfg(not(feature = "no_rand"))]
+pub use {holder::SDJWTHolder, issuer::ClaimsForSelectiveDisclosureStrategy, issuer::SDJWTIssuer};
 
 mod disclosure;
 pub mod error;
+#[cfg(not(feature = "no_rand"))]
 pub mod holder;
+#[cfg(not(feature = "no_rand"))]
 pub mod issuer;
 pub mod utils;
 pub mod verifier;
 
-#[cfg(not(feature = "ptd"))]
+#[cfg(not(feature = "no_rand"))]
 pub const DEFAULT_SIGNING_ALG: &str = "ES256";
-#[cfg(feature = "ptd")]
+#[cfg(feature = "no_rand")]
 pub const DEFAULT_SIGNING_ALG: &str = "EdDSA";
-
 const SD_DIGESTS_KEY: &str = "_sd";
 const DIGEST_ALG_KEY: &str = "_sd_alg";
 pub const DEFAULT_DIGEST_ALG: &str = "sha-256";

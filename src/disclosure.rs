@@ -1,5 +1,5 @@
 use crate::utils::{base64_hash, base64url_encode};
-#[cfg(not(feature = "mock_salts"))]
+#[cfg(not(any(feature = "mock_salts", feature = "no_rand")))]
 use crate::utils::generate_salt;
 #[cfg(feature = "mock_salts")]
 use crate::utils::generate_salt_mock;
@@ -13,6 +13,7 @@ pub(crate) struct SDJWTDisclosure {
 }
 
 impl SDJWTDisclosure  {
+    #[cfg(not(feature = "no_rand"))]
     pub(crate) fn new<V>(key: Option<String>, value: V) -> Self where V: ToString {
         #[cfg(not(feature = "mock_salts"))]
         let salt = generate_salt();

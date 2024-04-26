@@ -1,6 +1,6 @@
 use crate::{error, SDJWTJson, SDJWTSerializationFormat};
 use error::{Error, Result};
-use jsonwebtoken::{self, Algorithm, EncodingKey, Header};
+use jsonwebtoken::{Algorithm, EncodingKey, Header};
 use serde_json::{Map, Value};
 use std::collections::HashMap;
 use std::str::FromStr;

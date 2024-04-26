@@ -3,7 +3,9 @@ use error::Result;
 use std::collections::{HashMap, VecDeque};
 use std::str::FromStr;
 use std::vec::Vec;
-use jsonwebtoken::{self, jwk::Jwk, Algorithm, EncodingKey, Header};
+
+use jsonwebtoken::jwk::Jwk;
+use jsonwebtoken::{Algorithm, EncodingKey, Header};
 use rand::Rng;
 use serde_json::Value;
 use serde_json::{json, Map as SJMap, Map};
