@@ -3,6 +3,7 @@ use crate::error::Result;
 use crate::SDJWTSerializationFormat;
 use jsonwebtoken::jwk::Jwk;
 use jsonwebtoken::{Algorithm, DecodingKey, Header, Validation};
+#[cfg(not(feature = "no_rand"))]
 use log::debug;
 use serde_json::{Map, Value};
 use std::option::Option;
@@ -326,6 +327,7 @@ impl SDJWTVerifier {
                 let unpacked_value = self.unpack_disclosed_claims(&value)?;
                 pre_output.insert(key, unpacked_value);
             } else {
+                #[cfg(not(feature = "no_rand"))]
                 debug!("Digest {:?} skipped as decoy", digest)
             }
         }
@@ -354,6 +356,7 @@ impl SDJWTVerifier {
             let unpacked_value = self.unpack_disclosed_claims(&value)?;
             return Ok(Some(unpacked_value));
         } else {
+            #[cfg(not(feature = "no_rand"))]
             debug!("Digest {:?} skipped as decoy", digest)
         }
 
