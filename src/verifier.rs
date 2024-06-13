@@ -1,8 +1,8 @@
 use crate::error::Error;
 use crate::error::Result;
 use crate::SDJWTSerializationFormat;
-use jsonwebtoken::jwk::Jwk;
-use jsonwebtoken::{Algorithm, DecodingKey, Header, Validation};
+use jsonwebtoken::{jwk::Jwk, Algorithm, Validation};
+use jsonwebtoken::{DecodingKey, Header};
 #[cfg(not(feature = "no_rand"))]
 use log::debug;
 use serde_json::{Map, Value};
@@ -11,6 +11,7 @@ use std::str::FromStr;
 use std::string::String;
 use std::vec::Vec;
 
+#[cfg(not(feature = "no_rand"))]
 use crate::utils::base64_hash;
 use crate::{
     SDJWTCommon, CNF_KEY, COMBINED_SERIALIZATION_FORMAT_SEPARATOR, DEFAULT_DIGEST_ALG,
@@ -67,17 +68,20 @@ impl SDJWTVerifier {
         verifier.verify_sd_jwt(Some(DEFAULT_SIGNING_ALG.to_owned()))?;
         verifier.verified_claims = verifier.extract_sd_claims()?;
 
-        if let (Some(expected_aud), Some(expected_nonce)) = (&expected_aud, &expected_nonce) {
-            verifier.verify_key_binding_jwt(
-                expected_aud.to_owned(),
-                expected_nonce.to_owned(),
-                Some(DEFAULT_SIGNING_ALG),
-            )?;
-        } else if expected_aud.is_some() || expected_nonce.is_some() {
-            return Err(Error::InvalidInput(
+        #[cfg(not(feature = "no_rand"))]
+        {
+            if let (Some(expected_aud), Some(expected_nonce)) = (&expected_aud, &expected_nonce) {
+                verifier.verify_key_binding_jwt(
+                    expected_aud.to_owned(),
+                    expected_nonce.to_owned(),
+                    Some(DEFAULT_SIGNING_ALG),
+                )?;
+            } else if expected_aud.is_some() || expected_nonce.is_some() {
+                return Err(Error::InvalidInput(
                 "Either both expected_aud and expected_nonce must be provided or both must be None"
                     .to_string(),
             ));
+            }
         }
 
         Ok(verifier)
@@ -121,6 +125,7 @@ impl SDJWTVerifier {
         Ok(())
     }
 
+    #[cfg(not(feature = "no_rand"))]
     fn verify_key_binding_jwt(
         &mut self,
         expected_aud: String,
@@ -193,6 +198,7 @@ impl SDJWTVerifier {
         Ok(())
     }
 
+    #[cfg(not(feature = "no_rand"))]
     fn _get_key_binding_digest_hash(&mut self) -> Result<String> {
         let mut combined: Vec<&str> =
             Vec::with_capacity(self.sd_jwt_engine.input_disclosures.len() + 1);

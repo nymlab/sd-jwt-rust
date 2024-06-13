@@ -18,7 +18,8 @@ no_rand = ["jsonwebtoken/no_rand"]
 [dependencies]
 base64 = "0.21"
 hmac = "0.12"
-jsonwebtoken = { git = "https://github.com/nymlab/jsonwebtoken", rev = "6afcff056817b4393", default-features = false }
+jsonwebtoken = { git = "https://github.com/nymlab/jsonwebtoken", rev = "096c5bc97023733a2b8c", default-features = false }
+# jsonwebtoken = { path = "../jsonwebtoken", default-features = false }
 lazy_static = {  version = "1.4", optional = true }
 log = {version = "0.4", optional = true}
 rand = {version = "0.8", optional = true}
