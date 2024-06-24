@@ -104,10 +104,20 @@ impl SDJWTVerifier {
             .ok_or(Error::ConversionError("str".to_string()))?;
         let issuer_public_key = (self.cb_get_issuer_key)(unverified_issuer, &parsed_header_sd_jwt);
 
+        // if cfg is not(feature = "no_rand") then just return Validation, else must remove exp
+        let validation = if cfg!(not(feature = "no_rand")) {
+            Validation::new(Algorithm::EdDSA)
+        } else {
+            let mut v = Validation::new(Algorithm::EdDSA);
+            v.required_spec_claims.remove("exp");
+            v
+        };
+
         let claims = jsonwebtoken::decode(
             sd_jwt,
             &issuer_public_key,
-            &Validation::new(Algorithm::EdDSA),
+            // By default this expects `exp` field to be present
+            &validation,
         )
         .map_err(|e| Error::DeserializationError(format!("Cannot decode jwt: {}", e)))?
         .claims;
