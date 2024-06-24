@@ -232,10 +232,23 @@ impl SDJWTVerifier {
     fn extract_sd_claims(&mut self) -> Result<Value> {
         if self.sd_jwt_payload.contains_key(DIGEST_ALG_KEY)
             && self.sd_jwt_payload[DIGEST_ALG_KEY] != DEFAULT_DIGEST_ALG
+            && self.sd_jwt_payload[DIGEST_ALG_KEY]
+                .as_str()
+                .map(|s| s.to_lowercase())
+                .ok_or(Error::DeserializationError(format!(
+                    "Invalid hash algorithm Value {}",
+                    self.sd_jwt_payload[DIGEST_ALG_KEY]
+                )))?
+                != DEFAULT_DIGEST_ALG
         {
             return Err(Error::DeserializationError(format!(
-                "Invalid hash algorithm {}",
+                "Invalid hash algorithm {}, converted as {}, expected {}",
+                self.sd_jwt_payload[DIGEST_ALG_KEY],
                 self.sd_jwt_payload[DIGEST_ALG_KEY]
+                    .as_str()
+                    .map(|s| s.to_lowercase())
+                    .unwrap(),
+                DEFAULT_DIGEST_ALG
             )));
         }
 
