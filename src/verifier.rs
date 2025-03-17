@@ -86,6 +86,11 @@ impl SDJWTVerifier {
         Ok(verifier)
     }
 
+    // This function is used to get the sdjwt engine
+    pub fn get_sdjwt_engine(&self) -> &SDJWTCommon {
+        &self.sd_jwt_engine
+    }
+
     fn verify_sd_jwt(&mut self, sign_alg: Option<String>) -> Result<()> {
         let sd_jwt = self
             .sd_jwt_engine

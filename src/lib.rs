@@ -51,7 +51,7 @@ pub enum SDJWTSerializationFormat {
 }
 
 #[derive(Default)]
-pub(crate) struct SDJWTCommon {
+pub struct SDJWTCommon {
     typ: Option<String>,
     serialization_format: SDJWTSerializationFormat,
     unverified_input_key_binding_jwt: Option<String>,
@@ -104,6 +104,10 @@ impl SDJWTCommon {
         }
 
         Ok(())
+    }
+
+    pub fn get_unverified_input_sd_jwt_payload(&self) -> Option<&Map<String, Value>> {
+        self.unverified_input_sd_jwt_payload.as_ref()
     }
 
     fn check_for_sd_claim(the_object: &Value) -> Result<()> {
