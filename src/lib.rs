@@ -31,7 +31,7 @@ const _SD_JWT_TYP_HEADER: &str = "sd+jwt";
 const KB_JWT_TYP_HEADER: &str = "kb+jwt";
 const KB_DIGEST_KEY: &str = "sd_hash";
 pub const COMBINED_SERIALIZATION_FORMAT_SEPARATOR: &str = "~";
-const JWT_SEPARATOR: &str = ".";
+pub const JWT_SEPARATOR: &str = ".";
 const CNF_KEY: &str = "cnf";
 const JWK_KEY: &str = "jwk";
 
