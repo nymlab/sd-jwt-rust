@@ -1,3 +1,4 @@
+#![allow(unused_variables)]
 use crate::error::Error;
 use crate::error::Result;
 use crate::SDJWTSerializationFormat;

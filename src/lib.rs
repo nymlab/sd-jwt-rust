@@ -1,3 +1,5 @@
+#![allow(unused_imports)]
+#![allow(dead_code)]
 use crate::error::Error;
 use crate::utils::{base64_hash, base64url_decode, jwt_payload_decode};
 
@@ -57,7 +59,7 @@ pub struct SDJWTCommon {
     unverified_input_key_binding_jwt: Option<String>,
     unverified_sd_jwt: Option<String>,
     unverified_sd_jwt_json: Option<SDJWTJson>,
-    unverified_input_sd_jwt_payload: Option<Map<String, Value>>,
+    pub unverified_input_sd_jwt_payload: Option<Map<String, Value>>,
     hash_to_decoded_disclosure: HashMap<String, Value>,
     hash_to_disclosure: HashMap<String, String>,
     input_disclosures: Vec<String>,
@@ -106,10 +108,6 @@ impl SDJWTCommon {
         Ok(())
     }
 
-    pub fn get_unverified_input_sd_jwt_payload(&self) -> Option<&Map<String, Value>> {
-        self.unverified_input_sd_jwt_payload.as_ref()
-    }
-
     fn check_for_sd_claim(the_object: &Value) -> Result<()> {
         match the_object {
             Value::Object(obj) => {
@@ -135,7 +133,7 @@ impl SDJWTCommon {
         Ok(())
     }
 
-    fn parse_compact_sd_jwt(&mut self, sd_jwt_with_disclosures: String) -> Result<()> {
+    pub fn parse_compact_sd_jwt(&mut self, sd_jwt_with_disclosures: String) -> Result<()> {
         let parts: Vec<&str> = sd_jwt_with_disclosures
             .split(COMBINED_SERIALIZATION_FORMAT_SEPARATOR)
             .collect();
